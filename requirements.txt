@@ -1,0 +1,26 @@
+# FastAPI and web server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Machine Learning
+torch>=2.0.0
+transformers>=4.35.0
+numpy>=1.21.0
+scikit-learn>=1.3.0
+
+# Data manipulation and visualization
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.17.0
+
+# API validation and serialization
+pydantic>=2.4.0
+
+# HTTP client for examples
+requests>=2.31.0
+
+# Development and testing (optional)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0
