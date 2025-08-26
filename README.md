@@ -1,6 +1,6 @@
 # TechSphere ML API
 
-API para análisis de textos científicos utilizando SciBERT con arquitectura por capas.
+API para análisis de textos científicos utilizando SciBERT con arquitectura por capas y **soporte para exposición pública con Ngrok**.
 
 ## 🚀 Características
 
@@ -10,6 +10,8 @@ API para análisis de textos científicos utilizando SciBERT con arquitectura po
 - **Gráficos de distribución** de clases médicas
 - **Demo funcional** para probar clasificaciones en tiempo real
 - **Visualización de características** más importantes del modelo
+- **🌐 Exposición pública con Ngrok** para acceso desde internet
+- **📊 Panel de monitoreo** de túneles Ngrok en tiempo real
 
 ## 🏗️ Arquitectura
 
@@ -47,7 +49,7 @@ api/
    source techsphere-env/bin/activate
 
    # En Windows:
-   # techsphere-env\Scripts\activate
+   techsphere-env\Scripts\activate
 
    # Verificar que está activado (debería aparecer (techsphere-env) en el prompt)
    ```
@@ -119,6 +121,8 @@ conda activate techsphere
 
 ### Ejecutar la API
 
+#### 💻 Ejecución Local
+
 ```bash
 # Opción 1: Usando el script
 python run_api.py
@@ -128,6 +132,43 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 La API estará disponible en: `http://localhost:8000`
+
+#### 🌐 Ejecución Pública con Ngrok
+
+Para hacer tu API accesible desde internet:
+
+```bash
+# Configuración rápida (solo la primera vez)
+./setup_ngrok.sh
+
+# Ejecutar con Ngrok
+python run_api.py --ngrok
+
+# Con token específico
+python run_api.py --ngrok --ngrok-token TU_TOKEN
+
+# Puerto personalizado
+python run_api.py --ngrok --port 8080
+```
+
+**Cuando uses Ngrok obtendrás:**
+
+- 🌐 **URL pública**: `https://abc123.ngrok-free.app`
+- 📖 **Documentación**: `https://abc123.ngrok-free.app/api/v1/docs`
+- 🔧 **Panel de control**: `http://localhost:4040`
+
+**Comandos útiles:**
+
+```bash
+# Ver opciones disponibles
+python run_api.py --help
+
+# Demostración completa interactiva
+./demo_complete.sh
+
+# Probar API pública
+python ngrok_client_example.py https://tu-url-ngrok.app
+```
 
 ### Documentación interactiva
 

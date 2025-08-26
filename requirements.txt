@@ -2,6 +2,9 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 
+# Ngrok for public exposure
+pyngrok>=7.0.0
+
 # Machine Learning
 torch>=2.0.0
 transformers>=4.35.0

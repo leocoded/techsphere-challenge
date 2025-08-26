@@ -93,16 +93,74 @@ pip install -r requirements.txt
 
 **¡Importante!** Siempre activar el entorno virtual primero:
 
+````bash
+# Activar entorno virtual (si no está activado)
+source techsphere-env/bin/activate  # macOS/Linux
+# techsphere-env\Scripts\activate     # Windows
+
+### 1. Ejecutar la API
+
+**¡Importante!** Siempre activar el entorno virtual primero:
+
 ```bash
 # Activar entorno virtual (si no está activado)
 source techsphere-env/bin/activate  # macOS/Linux
 # techsphere-env\Scripts\activate     # Windows
 
-# Ejecutar la API
+# Ejecutar la API localmente
 python run_api.py
+
+# Ejecutar la API con Ngrok (acceso público)
+python run_api.py --ngrok
+
+# Ejecutar con token de Ngrok específico
+python run_api.py --ngrok --ngrok-token TU_TOKEN_AQUI
+
+# Ejecutar en puerto personalizado con Ngrok
+python run_api.py --ngrok --port 8080
+````
+
+#### 🌐 Configuración de Ngrok para Acceso Público
+
+Para exponer tu API a internet usando Ngrok:
+
+**Configuración Automática:**
+
+```bash
+# Ejecutar script de configuración
+./setup_ngrok.sh
 ```
 
-La API estará disponible en: `http://localhost:8000`
+**Configuración Manual:**
+
+1. **Instalar Ngrok** (si no está instalado):
+
+   - Visita: https://ngrok.com/download
+   - O con Homebrew: `brew install ngrok/ngrok/ngrok`
+
+2. **Obtener token gratuito** (opcional pero recomendado):
+
+   - Visita: https://dashboard.ngrok.com/get-started/your-authtoken
+   - Crea cuenta gratuita
+   - Configura el token: `ngrok config add-authtoken TU_TOKEN`
+
+3. **Ejecutar con Ngrok:**
+   ```bash
+   python run_api.py --ngrok
+   ```
+
+**URLs disponibles con Ngrok:**
+
+- 🌐 **URL pública**: `https://abc123.ngrok-free.app`
+- 📖 **Documentación**: `https://abc123.ngrok-free.app/api/v1/docs`
+- 🔍 **ReDoc**: `https://abc123.ngrok-free.app/api/v1/redoc`
+- 💡 **Health check**: `https://abc123.ngrok-free.app/api/v1/health`
+- 🔧 **Panel de Ngrok**: `http://localhost:4040` (estadísticas locales)
+
+La API estará disponible en:
+
+- **Local**: `http://localhost:8000`
+- **Público** (con Ngrok): URL proporcionada por Ngrok
 
 ### 2. Documentación Interactiva
 

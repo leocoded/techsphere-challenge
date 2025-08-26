@@ -110,7 +110,6 @@ ENV/
 env.bak/
 venv.bak/
 techsphere-env/  # Entorno virtual específico del proyecto
-scibert_classifier/  # Directorio del modelo SciBERT
 
 # Spyder project settings
 .spyderproject
@@ -165,6 +164,7 @@ api.log
 # Model files (if too large for git)
 # scibert_classifier/model.safetensors
 # scibert_classifier/*.bin
+scibert_classifier/  # Directorio del modelo SciBERT
 
 # Personal notes
 notes.md
