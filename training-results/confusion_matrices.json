@@ -1,0 +1,26 @@
+{
+    "cardiovascular": {
+        "TN": 445,
+        "FP": 8,
+        "FN": 13,
+        "TP": 247
+    },
+    "hepatorenal": {
+        "TN": 480,
+        "FP": 5,
+        "FN": 12,
+        "TP": 216
+    },
+    "neurological": {
+        "TN": 343,
+        "FP": 32,
+        "FN": 42,
+        "TP": 296
+    },
+    "oncological": {
+        "TN": 579,
+        "FP": 4,
+        "FN": 6,
+        "TP": 124
+    }
+}

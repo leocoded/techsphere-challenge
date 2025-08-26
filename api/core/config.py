@@ -26,6 +26,11 @@ class Config:
         return str(cls.MODEL_PATH)
     
     @classmethod
+    def get_project_root(cls) -> Path:
+        """Obtiene la ruta raíz del proyecto"""
+        return cls.BASE_DIR
+    
+    @classmethod
     def is_cuda_available(cls) -> bool:
         """Verifica si CUDA está disponible"""
         try:

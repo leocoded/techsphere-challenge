@@ -1,0 +1,17 @@
+{
+    "neurological": 1058,
+    "cardiovascular": 645,
+    "hepatorenal": 533,
+    "neurological|cardiovascular": 308,
+    "oncological": 237,
+    "neurological|hepatorenal": 202,
+    "cardiovascular|hepatorenal": 190,
+    "neurological|oncological": 143,
+    "hepatorenal|oncological": 98,
+    "cardiovascular|oncological": 70,
+    "neurological|cardiovascular|hepatorenal": 28,
+    "neurological|hepatorenal|oncological": 26,
+    "neurological|cardiovascular|oncological": 13,
+    "cardiovascular|hepatorenal|oncological": 7,
+    "neurological|cardiovascular|hepatorenal|oncological": 7
+}

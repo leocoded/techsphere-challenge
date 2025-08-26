@@ -19,7 +19,7 @@ async def predict_text(request: PredictionRequest) -> PredictionResponse:
     """
     Realiza una predicción sobre un texto científico.
     
-    - **text**: Texto científico para clasificar (mínimo 10 caracteres, máximo 5000)
+    - **text**: Texto científico para clasificar (mínimo 10 caracteres, máximo 5000) (title + abstract)
     
     Retorna la clase predicha, confianza, probabilidades por categoría y categorías individuales.
     """

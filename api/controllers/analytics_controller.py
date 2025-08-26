@@ -6,6 +6,7 @@ from typing import Dict, Any
 
 from ..models.schemas import (
     ConfusionMatrixResponse,
+    ConfusionMatrixMetricsResponse,
     ClassDistributionResponse,
     FeatureImportanceResponse
 )
@@ -15,15 +16,15 @@ router = APIRouter(prefix="/analytics", tags=["Analytics & Visualizations"])
 
 @router.get(
     "/confusion-matrix",
-    response_model=ConfusionMatrixResponse,
+    response_model=ConfusionMatrixMetricsResponse,
     summary="Matriz de confusión",
-    description="Obtiene la matriz de confusión del modelo para visualización"
+    description="Obtiene las métricas de matriz de confusión del modelo por categoría"
 )
-async def get_confusion_matrix() -> ConfusionMatrixResponse:
+async def get_confusion_matrix() -> ConfusionMatrixMetricsResponse:
     """
-    Obtiene la matriz de confusión del modelo.
+    Obtiene las métricas de matriz de confusión del modelo por categoría.
     
-    Retorna la matriz y las etiquetas correspondientes para crear visualizaciones.
+    Retorna TN, FP, FN, TP para cada categoría médica.
     """
     try:
         matrix = analytics_service.get_confusion_matrix()

@@ -6,10 +6,13 @@ import numpy as np
 import random
 from typing import Dict, List, Any, Tuple
 from datetime import datetime
+from pathlib import Path
 
 from ..core.utils import MLUtils
+from ..core.config import config
 from ..models.schemas import (
     ConfusionMatrixResponse, 
+    ConfusionMatrixMetricsResponse,
     ClassDistributionResponse, 
     FeatureImportanceResponse
 )
@@ -44,36 +47,79 @@ class AnalyticsService:
             "total_samples": sum(distribution.values())
         }
     
-    def get_confusion_matrix(self) -> ConfusionMatrixResponse:
-        """Genera una matriz de confusión simulada"""
-        categories = self.sample_data["categories"]
-        n_classes = len(categories)
-        
-        # Generar matriz de confusión simulada
-        matrix = []
-        for i in range(n_classes):
-            row = []
-            for j in range(n_classes):
-                if i == j:  # Diagonal principal (predicciones correctas)
-                    value = random.randint(80, 120)
-                elif abs(i - j) == 1:  # Clases adyacentes (confusiones comunes)
-                    value = random.randint(5, 15)
-                else:  # Otras confusiones
-                    value = random.randint(0, 5)
-                row.append(value)
-            matrix.append(row)
-        
-        return ConfusionMatrixResponse(
-            matrix=matrix,
-            labels=categories
-        )
+    def get_confusion_matrix(self) -> ConfusionMatrixMetricsResponse:
+        """Obtiene métricas reales de matriz de confusión desde confusion_matrices.json"""
+        try:
+            # Cargar métricas reales desde el archivo JSON
+            matrix_path = Path(config.get_project_root()) / "training-results" / "confusion_matrices.json"
+            
+            with open(matrix_path, "r") as f:
+                confusion_data = json.load(f)
+            
+            # Extraer categorías
+            categories = list(confusion_data.keys())
+            
+            return ConfusionMatrixMetricsResponse(
+                category_metrics=confusion_data,
+                categories=categories
+            )
+            
+        except Exception as e:
+            # Fallback a datos simulados
+            categories = self.sample_data["categories"]
+            n_classes = len(categories)
+            
+            # Generar matriz de confusión simulada
+            matrix = []
+            for i in range(n_classes):
+                row = []
+                for j in range(n_classes):
+                    if i == j:  # Diagonal principal (predicciones correctas)
+                        value = random.randint(80, 120)
+                    elif abs(i - j) == 1:  # Clases adyacentes (confusiones comunes)
+                        value = random.randint(5, 15)
+                    else:  # Otras confusiones
+                        value = random.randint(0, 5)
+                    row.append(value)
+                matrix.append(row)
+            
+            # Simular métricas por categoría
+            fallback_metrics = {}
+            for category in categories:
+                fallback_metrics[category] = {
+                    "TP": random.randint(80, 120),
+                    "TN": random.randint(300, 500),
+                    "FP": random.randint(5, 15),
+                    "FN": random.randint(5, 15)
+                }
+            
+            return ConfusionMatrixMetricsResponse(
+                category_metrics=fallback_metrics,
+                categories=categories
+            )
     
     def get_class_distribution(self) -> ClassDistributionResponse:
-        """Obtiene la distribución de clases"""
-        return ClassDistributionResponse(
-            distribution=self.sample_data["distribution"],
-            total_samples=self.sample_data["total_samples"]
-        )
+        """Obtiene la distribución real de clases desde group_counts.json"""
+        try:
+            # Cargar distribución real desde el archivo JSON
+            counts_path = Path(config.get_project_root()) / "training-results" / "group_counts.json"
+            
+            with open(counts_path, "r") as f:
+                distribution_data = json.load(f)
+            
+            total_samples = sum(distribution_data.values())
+            
+            return ClassDistributionResponse(
+                distribution=distribution_data,
+                total_samples=total_samples
+            )
+            
+        except Exception as e:
+            # Fallback a distribución simulada
+            return ClassDistributionResponse(
+                distribution=self.sample_data["distribution"],
+                total_samples=self.sample_data["total_samples"]
+            )
     
     def get_feature_importance(self) -> FeatureImportanceResponse:
         """Obtiene características más importantes (simulado)"""

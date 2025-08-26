@@ -217,28 +217,38 @@ python dashboard_example.py
 
 ## 📊 Datos Disponibles para Dashboard
 
-### Métricas Principales
+### Métricas Principales (Datos Reales)
 
-- **F1-Score**: 0.890
-- **Accuracy**: 0.920
-- **Precision**: 0.910
-- **Recall**: 0.870
+- **F1-Score**: 0.9354
+- **Accuracy**: 0.9572
+- **Precision**: 0.9474
+- **Recall**: 0.9236
 
 ### Categorías de Clasificación
 
 El modelo clasifica textos en categorías médicas:
 
-- `cardiovascular` - Estudios cardiovasculares
-- `neurological` - Investigaciones neurológicas
-- `oncological` - Estudios oncológicos
-- `hepatorenal` - Investigaciones hepatorenales
+- `cardiovascular` - Estudios cardiovasculares (645 muestras)
+- `neurological` - Investigaciones neurológicas (1,058 muestras)
+- `oncological` - Estudios oncológicos (237 muestras)
+- `hepatorenal` - Investigaciones hepatorenales (533 muestras)
 
 También identifica **combinaciones** (clasificación multilabel):
 
-- `cardiovascular|neurological`
-- `cardiovascular|oncological`
-- `neurological|hepatorenal|oncological`
-- etc.
+- `neurological|cardiovascular` (308 muestras)
+- `cardiovascular|hepatorenal` (190 muestras)
+- `neurological|hepatorenal` (202 muestras)
+- `neurological|oncological` (143 muestras)
+- Y más combinaciones multilabel...
+
+### Métricas de Matriz de Confusión (Por Categoría)
+
+- **Cardiovascular**: TP=247, TN=445, FP=8, FN=13
+- **Hepatorenal**: TP=216, TN=480, FP=5, FN=12
+- **Neurological**: TP=296, TN=343, FP=32, FN=42
+- **Oncological**: TP=124, TN=579, FP=4, FN=6
+
+**Total de muestras en dataset**: 3,565
 
 ### Visualizaciones Generadas
 

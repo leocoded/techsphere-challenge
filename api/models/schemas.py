@@ -50,6 +50,11 @@ class ConfusionMatrixResponse(BaseModel):
     matrix: List[List[int]] = Field(..., description="Matriz de confusión")
     labels: List[str] = Field(..., description="Etiquetas de las clases")
     
+class ConfusionMatrixMetricsResponse(BaseModel):
+    """Modelo para métricas de matriz de confusión por categoría"""
+    category_metrics: Dict[str, Dict[str, int]] = Field(..., description="Métricas TN, FP, FN, TP por categoría")
+    categories: List[str] = Field(..., description="Lista de categorías")
+    
 class ClassDistributionResponse(BaseModel):
     """Modelo para distribución de clases"""
     distribution: Dict[str, int] = Field(..., description="Distribución de clases")
