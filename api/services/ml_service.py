@@ -7,6 +7,7 @@ import numpy as np
 import logging
 from typing import Dict, List, Tuple, Any
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from sklearn.preprocessing import MultiLabelBinarizer
 from pathlib import Path
 
 from ..core.config import config
@@ -22,6 +23,7 @@ class MLModelService:
         self.model = None
         self.tokenizer = None
         self.labels = None
+        self.mlb = None
         self.device = None
         self._load_model()
     
@@ -38,20 +40,26 @@ class MLModelService:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             self.model.to(self.device)
             
-            # Cargar etiquetas (incluyendo None/NaN para mantener índices correctos)
+            # Cargar etiquetas desde label_encoder.json (formato multilabel)
             with open(Path(model_path) / "label_encoder.json", "r") as f:
-                all_labels = json.load(f)
-            self.labels = np.array(all_labels)  # Mantener todas las etiquetas con índices originales
+                classes = json.load(f)
+            
+            # Configurar MultiLabelBinarizer
+            self.mlb = MultiLabelBinarizer(classes=classes)
+            self.mlb.fit([[]])  # Inicializar el MLBinarizer
+            
+            # Mantener las clases para compatibilidad
+            self.labels = np.array(classes)
             
             logger.info(f"Modelo cargado exitosamente en {self.device}")
-            logger.info(f"Clases disponibles: {len(self.labels)}")
+            logger.info(f"Clases disponibles: {classes}")
             
         except Exception as e:
             logger.error(f"Error cargando modelo: {str(e)}")
             raise
     
-    def predict(self, text: str) -> PredictionResponse:
-        """Realiza predicción sobre un texto"""
+    def predict(self, text: str, threshold: float = 0.5) -> PredictionResponse:
+        """Realiza predicción multilabel sobre un texto"""
         try:
             # Tokenizar texto
             inputs = self.tokenizer(
@@ -66,38 +74,38 @@ class MLModelService:
             with torch.no_grad():
                 outputs = self.model(**inputs)
                 logits = outputs.logits
-                probabilities = torch.nn.functional.softmax(logits, dim=1)
-                
-            # Obtener predicción
-            predicted_idx = torch.argmax(logits, dim=1).item()
-            confidence = probabilities[0][predicted_idx].item()
+                # Usar sigmoid para clasificación multilabel
+                probabilities = torch.sigmoid(logits).cpu().numpy()[0]
             
-            # Manejar caso de predicción NaN/None
-            predicted_class = self.labels[predicted_idx]
-            if predicted_class is None or (isinstance(predicted_class, str) and predicted_class in ['NaN', 'nan']):
-                predicted_class = "unknown"
-                categories = ["unknown"]
-            else:
-                categories = MLUtils.parse_multilabel(predicted_class)
-            
-            # Calcular probabilidades por clase
+            # Obtener etiquetas predichas usando umbral
+            predicted_labels = []
             probs_dict = {}
-            unique_categories = MLUtils.get_unique_categories(
-                [label for label in self.labels.tolist() if label is not None and str(label) != 'nan']
-            )
             
-            for category in unique_categories:
-                category_prob = 0.0
-                for i, label in enumerate(self.labels):
-                    if label is not None and str(label) != 'nan' and category in MLUtils.parse_multilabel(label):
-                        category_prob += probabilities[0][i].item()
-                probs_dict[category] = round(category_prob, 4)
+            for i, (cls, prob) in enumerate(zip(self.mlb.classes_, probabilities)):
+                probs_dict[cls] = round(float(prob), 4)
+                if prob > threshold:
+                    predicted_labels.append(cls)
+            
+            # Si no se predice ninguna etiqueta, usar la de mayor probabilidad
+            if not predicted_labels:
+                max_idx = np.argmax(probabilities)
+                predicted_labels = [self.mlb.classes_[max_idx]]
+                confidence = float(probabilities[max_idx])
+            else:
+                # Confianza como promedio de las probabilidades de las etiquetas predichas
+                confidence = float(np.mean([probabilities[self.mlb.classes_.tolist().index(label)] for label in predicted_labels]))
+            
+            # Crear string de clase predicha (compatible con formato anterior)
+            if len(predicted_labels) == 1:
+                predicted_class = predicted_labels[0]
+            else:
+                predicted_class = "|".join(sorted(predicted_labels))
             
             return PredictionResponse(
                 predicted_class=predicted_class,
                 confidence=round(confidence, 4),
                 probabilities=probs_dict,
-                categories=categories
+                categories=predicted_labels
             )
             
         except Exception as e:
@@ -161,13 +169,13 @@ class MLModelService:
     
     def is_model_loaded(self) -> bool:
         """Verifica si el modelo está cargado"""
-        return self.model is not None and self.tokenizer is not None
+        return self.model is not None and self.tokenizer is not None and self.mlb is not None
     
     def get_available_classes(self) -> List[str]:
         """Obtiene las clases disponibles"""
-        if self.labels is None:
+        if self.mlb is None:
             return []
-        return [label for label in self.labels.tolist() if label is not None and str(label) != 'nan']
+        return self.mlb.classes_.tolist()
 
 # Instancia global del servicio
 ml_service = MLModelService()

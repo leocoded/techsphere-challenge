@@ -1,38 +1,57 @@
 import torch
 import json
-import numpy as np
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from sklearn.preprocessing import MultiLabelBinarizer
 
-# Ruta del modelo
-model_path = "./scibert_classifier"
+# ==============================
+# 1. Rutas locales
+# ==============================
+model_path = "./scibert_classifier"  # carpeta donde está tu modelo
 
-# Cargar tokenizer y modelo
+# ==============================
+# 2. Cargar modelo, tokenizer y mlb
+# ==============================
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 model = AutoModelForSequenceClassification.from_pretrained(model_path)
 
 # Cargar clases desde JSON
-with open(f"{model_path}/label_encoder.json", "r") as f:
-    clases = json.load(f)
-clases = np.array(clases)  # para indexar fácilmente
+with open("label_encoder.json", "r") as f:
+    classes = json.load(f)
 
-# Función de predicción
-def predecir(texto):
+# Reconstruir el mlb
+mlb = MultiLabelBinarizer(classes=classes)
+mlb.fit([[]])  # "hack" para inicializar
+
+# ==============================
+# 3. Función de predicción
+# ==============================
+def predict(text, model, tokenizer, mlb, threshold=0.5, max_length=256):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
+    model.eval()
 
-    inputs = tokenizer(
-        texto,
-        return_tensors="pt",
+    encoding = tokenizer(
+        text,
         truncation=True,
         padding=True,
-        max_length=512
+        max_length=max_length,
+        return_tensors="pt"
     ).to(device)
 
-    outputs = model(**inputs)
-    pred = torch.argmax(outputs.logits, dim=1).item()
-    return clases[pred]   # directamente el nombre de la clase
+    with torch.no_grad():
+        outputs = model(**encoding)
+        logits = outputs.logits
+        probs = torch.sigmoid(logits).cpu().numpy()[0]
 
-# Ejemplo
-ejemplo = "Hypothesis: ACE inhibitors improves heart disease outcomes via acute myeloid leukemia pathways. Methods: randomized controlled trial with 264 diabetic patients, measuring interstitial nephritis and kidney. Results: better quality of life measures. Conclusion: cost-effectiveness implications."
+    # Mapear clases con umbral
+    predicted_labels = [cls for cls, prob in zip(mlb.classes_, probs) if prob > threshold]
+    return predicted_labels, probs
 
-print("Predicción:", predecir(ejemplo))
+# ==============================
+# 4. Texto de prueba
+# ==============================
+example_text = "Mechanisms of myocardial ischemia induced by epinephrine: comparison with exercise-induced ischemia. The role of epinephrine in eliciting myocardial ischemia was examined in patients with coronary artery disease. Objective signs of ischemia and factors increasing myocardial oxygen consumption were compared during epinephrine infusion and supine bicycle exercise. Both epinephrine and exercise produced myocardial ischemia as evidenced by ST segment depression and angina. However, the mechanisms of myocardial ischemia induced by epinephrine were significantly different from those of exercise. Exercise-induced myocardial ischemia was marked predominantly by increased heart rate and rate-pressure product with a minor contribution of end-diastolic volume, while epinephrine-induced ischemia was characterized by a marked increase in contractility and a less pronounced increase in heart rate and rate-pressure product. These findings indicate that ischemia produced by epinephrine, as may occur during states of emotional distress, has a mechanism distinct from that due to physical exertion."
+labels, probs = predict(example_text, model, tokenizer, mlb)
+
+print("Etiquetas predichas:", labels)
+print("Probabilidades:", probs)

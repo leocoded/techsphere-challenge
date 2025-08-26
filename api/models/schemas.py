@@ -7,12 +7,24 @@ from enum import Enum
 
 class PredictionRequest(BaseModel):
     """Modelo para solicitudes de predicción"""
-    text: str = Field(..., description="Texto científico para clasificar", min_length=10, max_length=5000)
+    text: str = Field(
+        ..., 
+        description="Texto científico completo formado por la concatenación del título (title) y resumen (abstract) del artículo científico. Formato: '{title} {abstract}'", 
+        min_length=10, 
+        max_length=5000
+    )
+    threshold: Optional[float] = Field(
+        default=0.5, 
+        description="Umbral de confianza para clasificación multilabel (0.0-1.0). Categorías con probabilidad >= threshold serán incluidas en la predicción", 
+        ge=0.0, 
+        le=1.0
+    )
     
     class Config:
         json_schema_extra = {
             "example": {
-                "text": "Hypothesis: ACE inhibitors improves heart disease outcomes via acute myeloid leukemia pathways. Methods: randomized controlled trial with 264 diabetic patients, measuring interstitial nephritis and kidney. Results: better quality of life measures. Conclusion: cost-effectiveness implications."
+                "text": "Mechanisms of myocardial ischemia induced by epinephrine: comparison with exercise-induced ischemia The role of epinephrine in eliciting myocardial ischemia was examined in patients with coronary artery disease. Objective signs of ischemia and factors increasing myocardial oxygen consumption were compared during epinephrine infusion and supine bicycle exercise.",
+                "threshold": 0.5
             }
         }
 

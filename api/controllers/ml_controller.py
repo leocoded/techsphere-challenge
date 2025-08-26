@@ -12,16 +12,32 @@ router = APIRouter(prefix="/ml", tags=["Machine Learning"])
 @router.post(
     "/predict",
     response_model=PredictionResponse,
-    summary="Realizar predicción",
-    description="Clasifica un texto científico utilizando el modelo SciBERT entrenado"
+    summary="Realizar predicción multilabel",
+    description="Clasifica un texto científico médico utilizando el modelo SciBERT entrenado con soporte multilabel"
 )
 async def predict_text(request: PredictionRequest) -> PredictionResponse:
     """
-    Realiza una predicción sobre un texto científico.
+    Realiza una predicción multilabel sobre un texto científico médico.
     
-    - **text**: Texto científico para clasificar (mínimo 10 caracteres, máximo 5000) (title + abstract)
+    - **text**: Texto científico completo obtenido de la concatenación del título (title) 
+      y el resumen (abstract) del artículo científico. Debe contener entre 10 y 5000 caracteres.
+      Formato esperado: "{title} {abstract}"
+    - **threshold**: Umbral de confianza para clasificación multilabel (valor entre 0.0 y 1.0, default: 0.5)
     
-    Retorna la clase predicha, confianza, probabilidades por categoría y categorías individuales.
+    **Categorías médicas disponibles:**
+    - cardiovascular: Enfermedades cardiovasculares y cardiológicas
+    - neurological: Trastornos neurológicos y neurocientíficos  
+    - oncological: Cáncer y oncología
+    - hepatorenal: Enfermedades hepáticas y renales
+    
+    **Retorna:**
+    - predicted_class: Categorías predichas separadas por "|" (ej: "cardiovascular|neurological")
+    - confidence: Máxima probabilidad entre todas las categorías
+    - probabilities: Probabilidades individuales por categoría
+    - categories: Lista de categorías que superan el umbral especificado
+    
+    **Nota:** El modelo puede predecir múltiples categorías simultáneamente si sus probabilidades
+    superan el umbral especificado (clasificación multilabel).
     """
     try:
         if not ml_service.is_model_loaded():
@@ -30,7 +46,7 @@ async def predict_text(request: PredictionRequest) -> PredictionResponse:
                 detail="Modelo no está cargado"
             )
         
-        prediction = ml_service.predict(request.text)
+        prediction = ml_service.predict(request.text, request.threshold)
         return prediction
         
     except Exception as e:
