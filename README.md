@@ -71,6 +71,27 @@ api/
    ```
    Debe contener: `config.json`, `model.safetensors`, `tokenizer.json`, etc.
 
+### 📥 Descarga del Modelo
+
+Si el modelo no está disponible en el directorio `scibert_classifier/`, puedes descargarlo desde las siguientes ubicaciones:
+
+- **Google Drive**: [Descargar modelo completo](https://drive.google.com/file/d/161MIKh6qFXaviPqEy5r6KW1xvzpX4pNf/view?usp=drive_link)
+- **Hugging Face**: [Ver en Hugging Face Hub](https://huggingface.co/mateobravor/tech-sphere-challenge/tree/main)
+
+**Instrucciones de descarga**:
+
+1. **Desde Google Drive**: Descarga el archivo comprimido y extrae el contenido en el directorio `scibert_classifier/`
+2. **Desde Hugging Face**: Clona el repositorio o descarga los archivos individuales:
+
+   ```bash
+   # Opción 1: Clonar con git-lfs
+   git lfs clone https://huggingface.co/mateobravor/tech-sphere-challenge
+
+   # Opción 2: Usar huggingface-hub
+   pip install huggingface-hub
+   huggingface-cli download mateobravor/tech-sphere-challenge --local-dir ./scibert_classifier
+   ```
+
 ### Opción 2: Con Conda (Alternativa recomendada) 🐍
 
 ```bash
@@ -399,6 +420,21 @@ Para desplegar en producción:
 4. **Agregar autenticación** si es necesario
 5. **Configurar logging** apropiado
 6. **Usar base de datos** para persistencia si se requiere
+
+## 📋 Entrega Final
+
+Este proyecto incluye un reporte técnico completo que documenta todo el desarrollo, arquitectura, metodología y resultados obtenidos:
+
+📄 **[Report Tech Sphere Challenge.pdf](./Report%20Tech%20Sphere%20Challenge.pdf)**
+
+El reporte contiene:
+
+- **Análisis del problema** y enfoque de solución
+- **Arquitectura técnica** detallada del sistema
+- **Metodología de desarrollo** y decisiones de diseño
+- **Implementación** de funcionalidades principales
+- **Evaluación de resultados** y métricas de rendimiento
+- **Conclusiones** y trabajo futuro
 
 ## 🤝 Contribuir
 
