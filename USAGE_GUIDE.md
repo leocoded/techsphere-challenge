@@ -29,23 +29,28 @@ api/
 
 ### 🤖 Machine Learning
 
-- ✅ **Clasificación de textos**: Endpoint POST `/api/v1/ml/predict`
+- ✅ **Clasificación de textos individual**: Endpoint POST `/api/v1/ml/predict`
+- ✅ **🆕 Clasificación batch desde CSV**: Endpoint POST `/api/v1/ml/predict-batch`
+- ✅ **🆕 Descarga de resultados**: Endpoint GET `/api/v1/ml/download/{filename}`
 - ✅ **Métricas del modelo**: F1-score, Accuracy, Precision, Recall
 - ✅ **Clases disponibles**: Lista de todas las categorías médicas
+- ✅ **🆕 Métricas multilabel avanzadas**: Hamming Loss, Exact Match Ratio
+- ✅ **🆕 Umbral configurable**: Ajuste de sensibilidad para predicciones
 
 ### 📊 Analytics & Dashboard
 
-- ✅ **Matriz de confusión**: Datos para visualización
-- ✅ **Distribución de clases**: Gráficos de distribución
+- ✅ **Matriz de confusión**: Datos para visualización con métricas reales
+- ✅ **Distribución de clases**: Gráficos de distribución con datos reales
 - ✅ **Características importantes**: Features más relevantes del modelo
 - ✅ **Rendimiento temporal**: Métricas a lo largo del tiempo
 - ✅ **Correlaciones**: Matriz de correlación entre categorías
 
 ### 🔧 Sistema
 
-- ✅ **Health Check**: Monitoreo del estado de la API
+- ✅ **Health Check**: Monitoreo del estado de la API y modelo
 - ✅ **Información**: Detalles de versión y configuración
 - ✅ **Documentación automática**: Swagger UI y ReDoc
+- ✅ **🆕 Gestión de archivos temporales**: Limpieza automática de archivos
 
 ## 🚀 Cómo Usar la API
 
@@ -200,6 +205,54 @@ curl "http://localhost:8000/api/v1/analytics/feature-importance"
 # Rendimiento temporal
 curl "http://localhost:8000/api/v1/analytics/performance-over-time"
 ```
+
+#### 🆕 **Procesamiento Batch desde CSV**
+
+**Nuevo endpoint para procesar múltiples textos y evaluar rendimiento del modelo**
+
+**Paso 1: Preparar archivo CSV**
+
+Crear un archivo con las columnas requeridas:
+
+```csv
+title,abstract,group
+"Mechanisms of myocardial ischemia","The role of epinephrine in eliciting myocardial ischemia was examined in patients with coronary artery disease...","cardiovascular"
+"Brain tumor classification using CNN","Deep learning approaches for brain tumor detection and classification from MRI scans...","neurological"
+"Hepatocellular carcinoma treatment","Treatment outcomes in patients with hepatocellular carcinoma receiving sorafenib therapy...","hepatorenal|oncological"
+"Cardiovascular risk factors","Risk factors in diabetic patients with chronic kidney disease...","cardiovascular|hepatorenal"
+```
+
+**Paso 2: Enviar archivo para procesamiento**
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/ml/predict-batch" \
+     -H "accept: application/json" \
+     -F "file=@your_data.csv" \
+     -F "threshold=0.4"
+```
+
+**Paso 3: Descargar resultados**
+
+```bash
+# Usar la URL proporcionada en la respuesta
+curl -X GET "http://localhost:8000/api/v1/ml/download/predictions_YYYYMMDD_HHMMSS.csv" \
+     --output results.csv
+```
+
+**Archivo de salida incluye:**
+
+- Todas las columnas originales (`title`, `abstract`, `group`)
+- `group_predicted`: Categorías predichas por el modelo
+- `confidence`: Nivel de confianza de la predicción
+- `combined_text`: Texto concatenado usado para predicción
+
+**Métricas calculadas automáticamente:**
+
+- **Accuracy**: Rendimiento general
+- **Precision/Recall/F1**: Por categoría y promedio
+- **Hamming Loss**: Específico para multilabel
+- **Exact Match Ratio**: Porcentaje de coincidencias exactas
+- **Category Metrics**: Métricas detalladas por cada categoría médica
 
 ### 4. Usar el Cliente Python
 

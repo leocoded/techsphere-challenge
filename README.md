@@ -5,6 +5,8 @@ API para análisis de textos científicos utilizando SciBERT con arquitectura po
 ## 🚀 Características
 
 - **Clasificación de textos científicos** con modelo SciBERT entrenado
+- **🆕 Procesamiento batch de archivos CSV** con métricas de evaluación
+- **🆕 Descarga de resultados procesados** con predicciones multilabel
 - **Dashboard interactivo** con métricas principales (F1-score, Accuracy)
 - **Matriz de confusión visual** para análisis de rendimiento
 - **Gráficos de distribución** de clases médicas
@@ -12,6 +14,8 @@ API para análisis de textos científicos utilizando SciBERT con arquitectura po
 - **Visualización de características** más importantes del modelo
 - **🌐 Exposición pública con Ngrok** para acceso desde internet
 - **📊 Panel de monitoreo** de túneles Ngrok en tiempo real
+- **📈 Métricas multilabel avanzadas** (Hamming Loss, Exact Match Ratio)
+- **⚡ Clasificación con umbral configurable** para ajustar sensibilidad
 
 ## 🏗️ Arquitectura
 
@@ -188,7 +192,9 @@ deactivate
 
 ### 🤖 Machine Learning
 
-- `POST /api/v1/ml/predict` - Clasificar texto científico
+- `POST /api/v1/ml/predict` - Clasificar texto científico individual
+- `POST /api/v1/ml/predict-batch` - **NUEVO**: Clasificar lote de textos desde CSV
+- `GET /api/v1/ml/download/{filename}` - **NUEVO**: Descargar archivo procesado
 - `GET /api/v1/ml/metrics` - Obtener métricas del modelo
 - `GET /api/v1/ml/classes` - Listar clases disponibles
 
@@ -207,15 +213,56 @@ deactivate
 
 ## 🧪 Ejemplo de uso
 
-### Clasificar texto científico
+### Clasificar texto científico individual
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/ml/predict" \
      -H "Content-Type: application/json" \
      -d '{
-       "text": "Hypothesis: ACE inhibitors improves heart disease outcomes via acute myeloid leukemia pathways. Methods: randomized controlled trial with 264 diabetic patients, measuring interstitial nephritis and kidney. Results: better quality of life measures. Conclusion: cost-effectiveness implications."
+       "text": "Mechanisms of myocardial ischemia induced by epinephrine: comparison with exercise-induced ischemia The role of epinephrine in eliciting myocardial ischemia was examined in patients with coronary artery disease. Objective signs of ischemia and factors increasing myocardial oxygen consumption were compared during epinephrine infusion and supine bicycle exercise.",
+       "threshold": 0.5
      }'
 ```
+
+### 🆕 **Clasificar lote de textos desde CSV**
+
+**Paso 1: Preparar archivo CSV**
+
+Crear un archivo `data.csv` con las siguientes columnas requeridas:
+
+- `title`: Título del artículo científico
+- `abstract`: Resumen del artículo científico
+- `group`: Categorías reales (separadas por "|" para multilabel, ej: "cardiovascular|neurological")
+
+```csv
+title,abstract,group
+"Mechanisms of myocardial ischemia","The role of epinephrine in eliciting myocardial ischemia was examined in patients with coronary artery disease...","cardiovascular"
+"Brain tumor classification","Deep learning approaches have shown promising results in medical image analysis particularly for brain tumor detection...","neurological"
+"Hepatocellular carcinoma treatment","This retrospective study analyzed treatment outcomes in patients with advanced hepatocellular carcinoma...","hepatorenal|oncological"
+```
+
+**Paso 2: Enviar archivo CSV para procesamiento**
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/ml/predict-batch" \
+     -H "accept: application/json" \
+     -F "file=@data.csv" \
+     -F "threshold=0.4"
+```
+
+**Paso 3: Descargar archivo procesado**
+
+```bash
+# Usar la URL proporcionada en la respuesta
+curl -X GET "http://localhost:8000/api/v1/ml/download/predictions_YYYYMMDD_HHMMSS.csv" \
+     --output predictions_results.csv
+```
+
+**Resultado**: El archivo descargado incluirá las columnas originales más:
+
+- `group_predicted`: Categorías predichas por el modelo
+- `confidence`: Nivel de confianza de la predicción
+- `combined_text`: Texto combinado usado para la predicción (title + abstract)
 
 ### Obtener métricas del modelo
 
@@ -242,7 +289,7 @@ También identifica **combinaciones** de categorías (clasificación multilabel)
 
 ## 🔍 Estructura de respuestas
 
-### Predicción
+### Predicción individual
 
 ```json
 {
@@ -251,13 +298,61 @@ También identifica **combinaciones** de categorías (clasificación multilabel)
   "probabilities": {
     "cardiovascular": 0.45,
     "neurological": 0.42,
-    "oncological": 0.13
+    "oncological": 0.13,
+    "hepatorenal": 0.05
   },
   "categories": ["cardiovascular", "neurological"]
 }
 ```
 
-### Métricas
+### 🆕 **Predicción batch**
+
+```json
+{
+  "success": true,
+  "message": "Procesamiento exitoso de 6 registros",
+  "total_processed": 6,
+  "metrics": {
+    "accuracy": 0.9167,
+    "precision": 0.9167,
+    "recall": 0.9167,
+    "f1_score": 0.9,
+    "hamming_loss": 0.0833,
+    "exact_match_ratio": 0.6667,
+    "total_samples": 6,
+    "category_metrics": {
+      "cardiovascular": {
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1_score": 0.8,
+        "support": 3
+      },
+      "neurological": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 2
+      },
+      "hepatorenal": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 3
+      },
+      "oncological": {
+        "precision": 0.6667,
+        "recall": 1.0,
+        "f1_score": 0.8,
+        "support": 2
+      }
+    }
+  },
+  "download_url": "/api/v1/ml/download/predictions_20250825_223034.csv",
+  "processing_time": 0.82
+}
+```
+
+### Métricas del modelo
 
 ```json
 {

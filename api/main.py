@@ -9,7 +9,7 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 
 from .core.config import config
-from .controllers import ml_controller, analytics_controller, system_controller
+from .controllers import ml_controller, analytics_controller, system_controller, files_controller
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -23,11 +23,15 @@ app = FastAPI(
     
     ## Características principales:
     
-    * **Clasificación de textos**: Clasifica textos científicos en categorías médicas
-    * **Métricas del modelo**: Obtiene F1-score, accuracy, precision y recall
+    * **Clasificación de textos individual**: Clasifica textos científicos en categorías médicas
+    * **🆕 Procesamiento batch desde CSV**: Carga archivos CSV para clasificación masiva y evaluación
+    * **🆕 Métricas multilabel avanzadas**: Hamming Loss, Exact Match Ratio, métricas por categoría
+    * **🆕 Descarga de resultados**: Archivos CSV procesados con predicciones
+    * **Métricas del modelo**: Obtiene F1-score, accuracy, precision y recall con datos reales
     * **Análisis visual**: Matriz de confusión, distribución de clases, importancia de características
     * **Demo funcional**: Endpoint para probar clasificaciones en tiempo real
     * **Dashboard datos**: Endpoints para crear visualizaciones interactivas
+    * **🆕 Umbral configurable**: Ajuste de sensibilidad para clasificación multilabel
     
     ## Categorías de clasificación:
     
@@ -38,6 +42,25 @@ app = FastAPI(
     - **Hepatorenal**: Investigaciones sobre hígado y riñones
     
     También puede identificar combinaciones de categorías (clasificación multilabel).
+    
+    ## 🆕 Funcionalidad Batch:
+    
+    ### Formato CSV requerido:
+    ```csv
+    title,abstract,group
+    "Título del artículo","Resumen del artículo","cardiovascular|neurological"
+    ```
+    
+    ### Proceso:
+    1. **Subir CSV** → POST `/api/v1/ml/predict-batch`
+    2. **Obtener métricas** → Accuracy, Precision, Recall, F1, Hamming Loss
+    3. **Descargar resultados** → GET `/api/v1/ml/download/{filename}`
+    
+    ### Métricas calculadas:
+    - Rendimiento general (Accuracy, F1-Score)
+    - Métricas multilabel (Hamming Loss, Exact Match Ratio)  
+    - Métricas por categoría individual
+    - Tiempo de procesamiento
     """,
     version=config.APP_VERSION,
     docs_url=f"{config.API_PREFIX}/docs",
@@ -58,6 +81,7 @@ app.add_middleware(
 app.include_router(system_controller.router, prefix=config.API_PREFIX)
 app.include_router(ml_controller.router, prefix=config.API_PREFIX)
 app.include_router(analytics_controller.router, prefix=config.API_PREFIX)
+app.include_router(files_controller.router, prefix=config.API_PREFIX)
 
 # Middleware para logging de requests
 @app.middleware("http")

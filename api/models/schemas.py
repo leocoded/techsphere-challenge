@@ -76,6 +76,35 @@ class FeatureImportanceResponse(BaseModel):
     """Modelo para importancia de características"""
     features: List[Dict[str, Any]] = Field(..., description="Características más importantes")
     method: str = Field(..., description="Método usado para calcular importancia")
+
+class BatchPredictionRequest(BaseModel):
+    """Modelo para solicitudes de predicción batch"""
+    threshold: Optional[float] = Field(
+        default=0.5, 
+        description="Umbral de confianza para clasificación multilabel (0.0-1.0)", 
+        ge=0.0, 
+        le=1.0
+    )
+
+class BatchPredictionMetrics(BaseModel):
+    """Modelo para métricas de predicción batch"""
+    accuracy: float = Field(..., description="Accuracy general")
+    precision: float = Field(..., description="Precision promedio")
+    recall: float = Field(..., description="Recall promedio")
+    f1_score: float = Field(..., description="F1-score promedio")
+    hamming_loss: float = Field(..., description="Hamming loss (para multilabel)")
+    exact_match_ratio: float = Field(..., description="Ratio de coincidencias exactas")
+    total_samples: int = Field(..., description="Total de muestras procesadas")
+    category_metrics: Dict[str, Dict[str, float]] = Field(..., description="Métricas por categoría")
+
+class BatchPredictionResponse(BaseModel):
+    """Modelo para respuesta de predicción batch"""
+    success: bool = Field(..., description="Si el procesamiento fue exitoso")
+    message: str = Field(..., description="Mensaje informativo")
+    total_processed: int = Field(..., description="Total de registros procesados")
+    metrics: Optional[BatchPredictionMetrics] = Field(None, description="Métricas de evaluación")
+    download_url: str = Field(..., description="URL para descargar el archivo procesado")
+    processing_time: float = Field(..., description="Tiempo de procesamiento en segundos")
     
 class HealthResponse(BaseModel):
     """Modelo para respuesta de health check"""
